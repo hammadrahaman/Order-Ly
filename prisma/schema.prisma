@@ -71,19 +71,35 @@ model MenuItem {
 
 
 model Order {
-  id           String   @id @default(uuid())
+  id           String      @id @default(uuid())
   restaurantId String
-  orderType    String   // DINE_IN / TAKEAWAY
-  status       String   // OPEN / PAID
-  subTotal     Float
-  tax          Float
-  discount     Float
-  total        Float
-  createdAt    DateTime @default(now())
 
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  orderType    OrderType   @default(DINE_IN)
+  status       OrderStatus @default(OPEN)
+
+  tableNumber  Int?        // nullable for TAKEAWAY
+
+  subTotal     Float       @default(0)
+  tax          Float       @default(0)
+  discount     Float       @default(0)
+  total        Float       @default(0)
+
+  createdAt    DateTime    @default(now())
+
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
   items        OrderItem[]
 }
+
+enum OrderType {
+  DINE_IN
+  TAKEAWAY
+}
+
+enum OrderStatus {
+  OPEN
+  PAID
+}
+
 
 model OrderItem {
   id        String   @id @default(uuid())
