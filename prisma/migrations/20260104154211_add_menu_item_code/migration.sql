@@ -1,17 +1,15 @@
-/*
-  Warnings:
+-- CreateTable
+CREATE TABLE "Restaurant" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "city" TEXT NOT NULL,
+    "gstPercentage" DOUBLE PRECISION NOT NULL,
+    "subscriptionStatus" TEXT NOT NULL DEFAULT 'TRIAL',
+    "trialEndsAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-  - Added the required column `city` to the `Restaurant` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `gstPercentage` to the `Restaurant` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `trialEndsAt` to the `Restaurant` table without a default value. This is not possible if the table is not empty.
-
-*/
--- AlterTable
-ALTER TABLE "Restaurant" ADD COLUMN     "city" TEXT NOT NULL,
-ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-ADD COLUMN     "gstPercentage" DOUBLE PRECISION NOT NULL,
-ADD COLUMN     "subscriptionStatus" TEXT NOT NULL DEFAULT 'TRIAL',
-ADD COLUMN     "trialEndsAt" TIMESTAMP(3) NOT NULL;
+    CONSTRAINT "Restaurant_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -42,6 +40,7 @@ CREATE TABLE "MenuItem" (
     "restaurantId" TEXT NOT NULL,
     "categoryId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
     "price" DOUBLE PRECISION NOT NULL,
     "isVeg" BOOLEAN NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
@@ -89,6 +88,9 @@ CREATE TABLE "Payment" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "MenuItem_restaurantId_code_key" ON "MenuItem"("restaurantId", "code");
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_restaurantId_fkey" FOREIGN KEY ("restaurantId") REFERENCES "Restaurant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
