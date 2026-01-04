@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model Restaurant {
+  id                 String   @id @default(uuid())
+  name               String
+  city               String
+  gstPercentage      Float
+  subscriptionStatus String   @default("TRIAL")
+  trialEndsAt        DateTime
+  createdAt          DateTime @default(now())
+
+  users              User[]
+  menuCategories     MenuCategory[]
+  menuItems          MenuItem[]
+  orders             Order[]
+  payments           Payment[]
+}
+
+model User {
+  id           String   @id @default(uuid())
+  restaurantId String
+  name         String
+  email        String   @unique   // 👈 ADD THIS
+  password     String
+  role         String   @default("OWNER")
+  createdAt    DateTime @default(now())
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+}
+
+model MenuCategory {
+  id           String   @id @default(uuid())
+  restaurantId String
+  name         String
+  isActive     Boolean  @default(true)
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  items        MenuItem[]
+}
+
+model MenuItem {
+  id           String   @id @default(uuid())
+  restaurantId String
+  categoryId   String
+
+  name         String
+  code         String
+  price        Float
+  isVeg        Boolean
+  isActive     Boolean  @default(true)
+
+  restaurant   Restaurant   @relation(fields: [restaurantId], references: [id])
+  category     MenuCategory @relation(fields: [categoryId], references: [id])
+  orderItems   OrderItem[]
+
+  @@unique([restaurantId, code])
+}
+
+
+model Order {
+  id           String   @id @default(uuid())
+  restaurantId String
+  orderType    String   // DINE_IN / TAKEAWAY
+  status       String   // OPEN / PAID
+  subTotal     Float
+  tax          Float
+  discount     Float
+  total        Float
+  createdAt    DateTime @default(now())
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  items        OrderItem[]
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId  String
+  itemId   String
+  quantity Int
+  price    Float
+
+  order    Order    @relation(fields: [orderId], references: [id])
+  item     MenuItem @relation(fields: [itemId], references: [id])
+}
+
+model Payment {
+  id           String   @id @default(uuid())
+  restaurantId String
+  amount       Float
+  method       String   // CASH / UPI
+  status       String   // SUCCESS / FAILED
+  createdAt    DateTime @default(now())
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+}
+
