@@ -141,3 +141,58 @@ export async function getMenuItems(
     });
   }
 }
+
+
+
+
+
+
+/**
+ * PUT /api/menu/items/:itemId/status
+ */
+export const updateMenuItemStatus = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const { itemId } = req.params;
+    const { isActive } = req.body;
+    const restaurantId = req.user!.restaurantId;
+
+    // 1️⃣ Validate body
+    if (typeof isActive !== "boolean") {
+      return res.status(400).json({
+        message: "isActive must be a boolean"
+      });
+    }
+
+    // 2️⃣ Ensure item belongs to restaurant
+    const menuItem = await prisma.menuItem.findFirst({
+      where: {
+        id: itemId,
+        restaurantId
+      }
+    });
+
+    if (!menuItem) {
+      return res.status(404).json({
+        message: "Menu item not found"
+      });
+    }
+
+    // 3️⃣ Update status
+    await prisma.menuItem.update({
+      where: { id: itemId },
+      data: { isActive }
+    });
+
+    return res.json({
+      message: "Menu item status updated successfully"
+    });
+  } catch (error) {
+    console.error("Update menu item status error:", error);
+    return res.status(500).json({
+      message: "Internal server error"
+    });
+  }
+};
