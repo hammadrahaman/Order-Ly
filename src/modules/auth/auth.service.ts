@@ -56,27 +56,29 @@ export async function signupOwner(data: {
 }
 
 export async function loginUser(email: string, password: string) {
-  // 1. Find user
-  const user = await prisma.user.findFirst({
-    where: { email },
-  });
 
-  if (!user) {
-    throw new Error("Invalid credentials");
+    email = email.trim().toLowerCase();
+    password = password.trim();
+  
+    const user = await prisma.user.findFirst({
+      where: { email },
+    });
+  
+    if (!user) {
+      throw new Error("Invalid credentials");
+    }
+  
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      throw new Error("Invalid credentials");
+    }
+  
+    const token = generateToken({
+      userId: user.id,
+      restaurantId: user.restaurantId,
+      role: user.role,
+    });
+  
+    return { token };
   }
-
-  // 2. Compare password
-  const isValid = await bcrypt.compare(password, user.password);
-  if (!isValid) {
-    throw new Error("Invalid credentials");
-  }
-
-  // 3. Generate JWT token
-  const token = generateToken({
-    userId: user.id,
-    restaurantId: user.restaurantId,
-    role: user.role,
-  });
-
-  return { token };
-}
+  

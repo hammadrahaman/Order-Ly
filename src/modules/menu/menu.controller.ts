@@ -6,37 +6,58 @@ import { AuthRequest } from "../../middlewares/auth.middleware";
  * POST /api/menu/categories
  */
 export async function createMenuCategory(
-  req: AuthRequest,
-  res: Response
-) {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const { name } = req.body;
-    const restaurantId = req.user.restaurantId;
-
-    if (!name) {
-      return res.status(400).json({
-        message: "Category name is required",
+    req: AuthRequest,
+    res: Response
+  ) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+  
+      const { name } = req.body;
+      const restaurantId = req.user.restaurantId;
+  
+      if (!name || !name.trim()) {
+        return res.status(400).json({
+          message: "Category name is required",
+        });
+      }
+  
+      const trimmedName = name.trim();
+  
+      // 🔍 CHECK IF CATEGORY ALREADY EXISTS (CASE-INSENSITIVE)
+      const existingCategory = await prisma.menuCategory.findFirst({
+        where: {
+          restaurantId,
+          name: {
+            equals: trimmedName,
+            mode: "insensitive",
+          },
+        },
+      });
+  
+      if (existingCategory) {
+        return res.status(409).json({
+          message: "Category already exists",
+        });
+      }
+  
+      const category = await prisma.menuCategory.create({
+        data: {
+          name: trimmedName,
+          restaurantId,
+        },
+      });
+  
+      return res.status(201).json(category);
+    } catch (error) {
+      console.error("Create menu category error:", error);
+      return res.status(500).json({
+        message: "Failed to create category",
       });
     }
-
-    const category = await prisma.menuCategory.create({
-      data: {
-        name,
-        restaurantId,
-      },
-    });
-
-    return res.status(201).json(category);
-  } catch (error) {
-    return res.status(500).json({
-      message: "Failed to create category",
-    });
   }
-}
+  
 
 /**
  * GET /api/menu/categories
