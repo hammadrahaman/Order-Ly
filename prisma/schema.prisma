@@ -88,6 +88,7 @@ model Order {
 
   restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
   items        OrderItem[]
+   payments  Payment[] 
 }
 
 enum OrderType {
@@ -112,14 +113,29 @@ model OrderItem {
   item     MenuItem @relation(fields: [itemId], references: [id])
 }
 
+
+enum PaymentMethod {
+  CASH
+  UPI
+}
+
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+}
+
+
 model Payment {
   id           String   @id @default(uuid())
+  orderId      String
   restaurantId String
   amount       Float
-  method       String   // CASH / UPI
-  status       String   // SUCCESS / FAILED
+  method       PaymentMethod   // CASH / UPI
+  status       PaymentStatus   // SUCCESS / FAILED
   createdAt    DateTime @default(now())
 
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  order        Order       @relation(fields: [orderId], references: [id])
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
 }
+
 
